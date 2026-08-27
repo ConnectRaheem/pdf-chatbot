@@ -4,7 +4,7 @@ A Retrieval-Augmented Generation (RAG) app that lets anyone upload a PDF —
 a contract, policy, manual, or report — and get instant, **cited** answers
 instead of manually searching through pages.
 
-**Live demo:** _add your Streamlit Cloud / Hugging Face Space link here_
+**Live demo:** [raheem-pdf-chatbot.streamlit.app](https://raheem-pdf-chatbot.streamlit.app)
 
 ![screenshot placeholder](docs/screenshot.png)
 
