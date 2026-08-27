@@ -23,8 +23,19 @@ from dotenv import load_dotenv
 from rag_engine import PDFChatEngine, list_available_groq_models, FALLBACK_GROQ_MODEL
 
 # Load variables from a local .env file (GROQ_API_KEY=...) into the
-# environment so the sidebar field below is pre-filled automatically.
+# environment so the sidebar field below is pre-filled automatically
+# when running locally.
 load_dotenv()
+
+# On Streamlit Community Cloud, secrets are exposed via st.secrets instead
+# of a .env file. Bridge it into os.environ so the same code path works
+# both locally and once deployed. Wrapped in try/except because st.secrets
+# raises if no secrets.toml exists at all (e.g. fresh local clone).
+try:
+    if "GROQ_API_KEY" in st.secrets and not os.environ.get("GROQ_API_KEY"):
+        os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
+except Exception:
+    pass
 
 st.set_page_config(
     page_title="DocChat AI — Talk to Your Documents",
