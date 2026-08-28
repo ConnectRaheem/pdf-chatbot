@@ -79,33 +79,44 @@ with st.sidebar:
 
     st.markdown("---")
 
-    groq_key_input = st.text_input(
-        "Groq API key",
-        type="password",
-        value=os.environ.get("GROQ_API_KEY", ""),
-        help="Get a free key at console.groq.com. Not stored anywhere.",
-    )
+    # If a Groq key is already configured on the backend (via Streamlit
+    # Secrets or a local .env), don't show the raw API key field to the
+    # end user at all -- that's an implementation detail, not something
+    # a client should have to see or understand. Only fall back to asking
+    # for it manually if nothing is configured yet (e.g. first local run).
+    env_key_present = bool(os.environ.get("GROQ_API_KEY"))
 
-    # Fetch the live list of models this Groq key can actually use.
-    # Groq occasionally retires model IDs, so we ask the API directly
-    # instead of hardcoding a name that can silently go stale.
-    model_options = [FALLBACK_GROQ_MODEL]
-    if groq_key_input:
-        try:
-            live_models = list_available_groq_models(groq_key_input)
-            if live_models:
-                model_options = live_models
-        except Exception:
-            pass  # keep the fallback silently; the sidebar key may just be incomplete
+    with st.expander("⚙️ Advanced settings", expanded=not env_key_present):
+        groq_key_input = st.text_input(
+            "Groq API key",
+            type="password",
+            value=os.environ.get("GROQ_API_KEY", ""),
+            help="Get a free key at console.groq.com. Not stored anywhere.",
+        )
 
-    preferred_default = _pick_best_default_model(model_options)
-    selected_model = st.selectbox(
-        "Model",
-        model_options,
-        index=model_options.index(preferred_default),
-        help="Live list fetched from your Groq account. Larger/'versatile' "
-             "models give better answers; smaller 'instant' models are faster.",
-    )
+        # Fetch the live list of models this Groq key can actually use.
+        # Groq occasionally retires model IDs, so we ask the API directly
+        # instead of hardcoding a name that can silently go stale.
+        model_options = [FALLBACK_GROQ_MODEL]
+        if groq_key_input:
+            try:
+                live_models = list_available_groq_models(groq_key_input)
+                if live_models:
+                    model_options = live_models
+            except Exception:
+                pass  # keep the fallback silently; the key may just be incomplete
+
+        preferred_default = _pick_best_default_model(model_options)
+        selected_model = st.selectbox(
+            "Model",
+            model_options,
+            index=model_options.index(preferred_default),
+            help="Live list fetched from your Groq account. Larger/'versatile' "
+                 "models give better answers; smaller 'instant' models are faster.",
+        )
+
+    if not groq_key_input:
+        st.warning("Add a Groq API key above to enable the assistant.")
 
     uploaded_files = st.file_uploader(
         "Upload one or more PDFs",
@@ -122,7 +133,7 @@ with st.sidebar:
 
     st.markdown("---")
     st.caption(
-        "**Stack:** LangChain · Groq (Llama 3.3 70B) · FAISS · "
+        "**Stack:** LangChain · Groq · FAISS · "
         "HuggingFace embeddings · Streamlit"
     )
 
